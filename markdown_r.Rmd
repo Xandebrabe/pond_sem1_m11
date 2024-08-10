@@ -1,0 +1,180 @@
+---
+title: "Pond_sem1_m11"
+output: html_document
+date: "2024-08-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+dados <- read.csv("transactions.csv")
+head(dados)
+str(dados)
+summary(dados)
+
+
+hist(dados$cod_vendedor, 
+     main = "Histograma de cod_vendedor", 
+     xlab = "Codigo do Vendedor", 
+     col = "lightblue", 
+     border = "black")
+
+hist(dados$quantidade, 
+     main = "Histograma de Quantidade", 
+     xlab = "Quantidade", 
+     col = "lightgreen", 
+     border = "black")
+
+
+plot(density(dados$cod_vendedor, na.rm = TRUE), 
+     main = "Densidade de cod_vendedor", 
+     xlab = "Codigo do Vendedor", 
+     col = "darkblue", 
+     lwd = 2)
+
+plot(density(dados$quantidade, na.rm = TRUE), 
+     main = "Densidade de Quantidade", 
+     xlab = "Quantidade", 
+     col = "darkgreen", 
+     lwd = 2)
+
+boxplot(dados$cod_vendedor, 
+        main = "Boxplot de cod_vendedor", 
+        ylab = "Codigo do Vendedor", 
+        col = "orange")
+
+boxplot(dados$quantidade, 
+        main = "Boxplot de Quantidade", 
+        ylab = "Quantidade", 
+        col = "lightblue")
+
+
+cod_vendedor_iqr <- IQR(dados$cod_vendedor, na.rm = TRUE)
+cod_vendedor_q1 <- quantile(dados$cod_vendedor, 0.25, na.rm = TRUE)
+cod_vendedor_q3 <- quantile(dados$cod_vendedor, 0.75, na.rm = TRUE)
+cod_vendedor_outliers <- dados$cod_vendedor[dados$cod_vendedor < (cod_vendedor_q1 - 1.5 * cod_vendedor_iqr) | dados$cod_vendedor > (cod_vendedor_q3 + 1.5 * cod_vendedor_iqr)]
+
+cod_vendedor_outliers
+
+quantidade_iqr <- IQR(dados$quantidade, na.rm = TRUE)
+quantidade_q1 <- quantile(dados$quantidade, 0.25, na.rm = TRUE)
+quantidade_q3 <- quantile(dados$quantidade, 0.75, na.rm = TRUE)
+quantidade_outliers <- dados$quantidade[dados$quantidade < (quantidade_q1 - 1.5 * quantidade_iqr) | dados$quantidade > (quantidade_q3 + 1.5 * quantidade_iqr)]
+
+quantidade_outliers
+
+
+plot(dados$quantidade, dados$cod_vendedor, 
+     main = "Scatter plot de Quantidade vs Vendedor", 
+     xlab = "Quantidade", 
+     ylab = "Vendedor", 
+     col = "blue", 
+     pch = 19)
+
+
+library(dplyr)
+
+quantidade_por_loja <- dados %>%
+  group_by(cod_loja) %>%
+  summarise(soma_quantidade = sum(quantidade))
+
+barplot(quantidade_por_loja$soma_quantidade, 
+        names.arg = quantidade_por_loja$cod_loja, 
+        main = "Soma de Quantidade por Loja", 
+        xlab = "Codigo da Loja", 
+        ylab = "Soma de Quantidade", 
+        col = "lightblue", 
+        las = 2)
+
+
+dados_numericos <- dados %>% select(cod_vendedor, quantidade)
+
+matriz_cor <- cor(dados_numericos, use = "complete.obs")
+
+matriz_cor
+
+
+if (!require(corrplot)) {
+  install.packages("corrplot")
+}
+library(corrplot)
+
+corrplot(matriz_cor, method = "circle", type = "upper", 
+         tl.col = "black", tl.srt = 45, 
+         main = "Matriz de Correlacao")
+
+pca_result <- prcomp(dados_numericos, scale. = TRUE)
+
+
+summary(pca_result)
+
+pca_result$sdev^2 / sum(pca_result$sdev^2)
+
+biplot(pca_result, main = "Biplot dos Componentes Principais")
+
+var_explained <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+barplot(var_explained, main = "Proporcao da Variancia Explicada", 
+        xlab = "Componentes Principais", ylab = "Proporcao da Variancia", 
+        col = "lightblue")
+
+pca_result$sdev^2 / sum(pca_result$sdev^2)
+```
+1. **id_employee**  
+   Identificador de cada funcionário.  
+
+2. **name**  
+   Nome do funcionário.  
+
+3. **surname**  
+   Sobrenome do funcionário.  
+
+4. **cpf**  
+   O CPF do funcionário.  
+
+5. **status**  
+   Status do funcionário, representando se ele ainda está ativo, de saída ou já saiu.  
+
+6. **role**  
+   A posição do funcionário no organograma da empresa.  
+
+7. **initial_date**  
+   Data de início do funcionário na empresa ou no cargo atual.  
+
+8. **end_date**  
+   Data final do funcionário atuando no cargo ou na empresa.  
+
+9. **store_id**  
+   ID da loja em que o funcionário atua.
+   
+PC1: Representa a direção no espaço dos dados que maximiza a variância. No caso de apenas duas variáveis, ele pode refletir uma combinação linear dessas variáveis, maximizando a separação entre os dados.
+
+PC2: O componente é ortogonal ao primeiro e captura a próxima maior quantidade de variância nos dados.
+
+Interpretação: Com duas variáveis numéricas, a utilidade prática do PCA é limitada. Neste caso, os dois componentes principais capturam toda a variância disponível, e a interpretação dos componentes pode não fornecer insights adicionais além do que foi tratado.
+
+
+ - Número Limitado de Variáveis Numéricas:
+
+A análise foi limitada pela disponibilidade de apenas duas variáveis numéricas. Isso restringiu a complexidade da análise multivariada e a profundidade dos insights que podem ser descobertos em um contexto geral.
+
+Possível melhorias:
+
+ - Expansão do Conjunto de Dados:
+
+Incluir variáveis vindas de outras tabelas, tanto numéricas quanto categóricas, enriqueceria a análise, utilizando técnicas mais robustas como regressão múltipla, clustering, e PCA multivariado.
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
